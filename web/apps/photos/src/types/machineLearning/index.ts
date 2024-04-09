@@ -134,6 +134,7 @@ export interface FaceAlignment {
 
 export interface AlignedFace extends CroppedFace {
     alignment?: FaceAlignment;
+    blurValue?: number;
 }
 
 export declare type FaceEmbedding = Float32Array;
@@ -229,6 +230,11 @@ export interface FaceAlignmentConfig {
     method: FaceAlignmentMethod;
 }
 
+export interface BlurDetectionConfig {
+    method: BlurDetectionMethod;
+    threshold: number;
+}
+
 export interface FaceEmbeddingConfig {
     method: FaceEmbeddingMethod;
     faceSize: number;
@@ -255,6 +261,7 @@ export interface MLSyncConfig {
     faceDetection: FaceDetectionConfig;
     faceCrop: FaceCropConfig;
     faceAlignment: FaceAlignmentConfig;
+    blurDetection: BlurDetectionConfig;
     faceEmbedding: FaceEmbeddingConfig;
     faceClustering: FaceClusteringConfig;
     objectDetection: ObjectDetectionConfig;
@@ -277,6 +284,7 @@ export interface MLSyncContext {
     faceCropService: FaceCropService;
     faceAlignmentService: FaceAlignmentService;
     faceEmbeddingService: FaceEmbeddingService;
+    blurDetectionService: BlurDetectionService;
     faceClusteringService: ClusteringService;
     objectDetectionService: ObjectDetectionService;
     sceneDetectionService: SceneDetectionService;
@@ -374,7 +382,7 @@ export interface FaceEmbeddingService {
 
 export interface BlurDetectionService {
     method: Versioned<BlurDetectionMethod>;
-    detectBlur(image: number[][]): number;
+    detectBlur(alignedFaces: Float32Array): number[];
 }
 
 export interface ClusteringService {

@@ -145,6 +145,10 @@ class FaceService {
             syncContext.faceEmbeddingService.faceSize,
             imageBitmap,
         );
+        const blurValues =
+            syncContext.blurDetectionService.detectBlur(faceImages);
+        newMlFile.faces.forEach((f, i) => (f.blurValue = blurValues[i]));
+
         imageBitmap.close();
         addLogLine("[MLService] alignedFaces: ", newMlFile.faces?.length);
         // addLogLine('4 TF Memory stats: ',JSON.stringify(tf.memory()));

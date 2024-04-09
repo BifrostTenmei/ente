@@ -28,6 +28,10 @@ export const DEFAULT_ML_SYNC_CONFIG: MLSyncConfig = {
     faceAlignment: {
         method: "ArcFace",
     },
+    blurDetection: {
+        method: "Laplacian",
+        threshold: 15,
+    },
     faceEmbedding: {
         method: "MobileFaceNet",
         faceSize: 112,

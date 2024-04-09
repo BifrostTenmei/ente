@@ -1,8 +1,10 @@
+import { MOBILEFACENET_FACE_SIZE } from "constants/mlConfig";
 import {
     BlurDetectionMethod,
     BlurDetectionService,
     Versioned,
 } from "types/machineLearning";
+import { createGrayscaleIntMatrixFromNormalized2List } from "utils/image";
 
 class LaplacianBlurDetectionService implements BlurDetectionService {
     public method: Versioned<BlurDetectionMethod>;
@@ -14,10 +16,22 @@ class LaplacianBlurDetectionService implements BlurDetectionService {
         };
     }
 
-    public detectBlur(image: number[][]): number {
-        const laplacian = this.applyLaplacian(image);
-        const variance = this.calculateVariance(laplacian);
-        return variance;
+    public detectBlur(alignedFaces: Float32Array): number[] {
+        const numFaces = Math.round(
+            alignedFaces.length /
+                (MOBILEFACENET_FACE_SIZE * MOBILEFACENET_FACE_SIZE * 3),
+        );
+        const blurValues: number[] = [];
+        for (let i = 0; i < numFaces; i++) {
+            const faceImage = createGrayscaleIntMatrixFromNormalized2List(
+                alignedFaces,
+                i,
+            );
+            const laplacian = this.applyLaplacian(faceImage);
+            const variance = this.calculateVariance(laplacian);
+            blurValues.push(variance);
+        }
+        return blurValues;
     }
 
     private calculateVariance(matrix: number[][]): number {
@@ -113,3 +127,5 @@ class LaplacianBlurDetectionService implements BlurDetectionService {
         return outputImage;
     }
 }
+
+export default new LaplacianBlurDetectionService();

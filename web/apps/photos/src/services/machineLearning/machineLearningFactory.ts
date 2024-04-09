@@ -5,6 +5,8 @@ import { ComlinkWorker } from "@ente/shared/worker/comlinkWorker";
 import PQueue from "p-queue";
 import { EnteFile } from "types/file";
 import {
+    BlurDetectionMethod,
+    BlurDetectionService,
     ClusteringMethod,
     ClusteringService,
     Face,
@@ -31,6 +33,7 @@ import arcfaceCropService from "./arcfaceCropService";
 import dbscanClusteringService from "./dbscanClusteringService";
 import hdbscanClusteringService from "./hdbscanClusteringService";
 import imageSceneService from "./imageSceneService";
+import laplacianBlurDetectionService from "./laplacianBlurDetectionService";
 import mobileFaceNetEmbeddingService from "./mobileFaceNetEmbeddingService";
 import ssdMobileNetV2Service from "./ssdMobileNetV2Service";
 import yoloFaceDetectionService from "./yoloFaceDetectionService";
@@ -84,6 +87,16 @@ export class MLFactory {
         throw Error("Unknon face alignment method: " + method);
     }
 
+    public static getBlurDetectionService(
+        method: BlurDetectionMethod,
+    ): BlurDetectionService {
+        if (method === "Laplacian") {
+            return laplacianBlurDetectionService;
+        }
+
+        throw Error("Unknon blur detection method: " + method);
+    }
+
     public static getFaceEmbeddingService(
         method: FaceEmbeddingMethod,
     ): FaceEmbeddingService {
@@ -131,6 +144,7 @@ export class LocalMLSyncContext implements MLSyncContext {
     public faceDetectionService: FaceDetectionService;
     public faceCropService: FaceCropService;
     public faceAlignmentService: FaceAlignmentService;
+    public blurDetectionService: BlurDetectionService;
     public faceEmbeddingService: FaceEmbeddingService;
     public faceClusteringService: ClusteringService;
     public objectDetectionService: ObjectDetectionService;
@@ -177,6 +191,9 @@ export class LocalMLSyncContext implements MLSyncContext {
         );
         this.faceAlignmentService = MLFactory.getFaceAlignmentService(
             this.config.faceAlignment.method,
+        );
+        this.blurDetectionService = MLFactory.getBlurDetectionService(
+            this.config.blurDetection.method,
         );
         this.faceEmbeddingService = MLFactory.getFaceEmbeddingService(
             this.config.faceEmbedding.method,

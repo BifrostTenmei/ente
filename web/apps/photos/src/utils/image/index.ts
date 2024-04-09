@@ -288,10 +288,11 @@ export function warpAffineFloat32List(
 
 export function createGrayscaleIntMatrixFromNormalized2List(
     imageList: Float32Array,
-    startIndex: number,
+    faceNumber: number,
     width: number = 112,
     height: number = 112,
 ): number[][] {
+    const startIndex = faceNumber * width * height * 3;
     return Array.from({ length: height }, (_, y) =>
         Array.from({ length: width }, (_, x) => {
             // 0.299 ∙ Red + 0.587 ∙ Green + 0.114 ∙ Blue
