@@ -77,6 +77,8 @@ export declare type FaceAlignmentMethod =
 
 export declare type FaceEmbeddingMethod = "MobileFaceNet" | "FaceApiDlib";
 
+export declare type BlurDetectionMethod = "Laplacian";
+
 export declare type ClusteringMethod = "Hdbscan" | "Dbscan";
 
 export class AlignedBox {
@@ -366,10 +368,13 @@ export interface FaceEmbeddingService {
     method: Versioned<FaceEmbeddingMethod>;
     faceSize: number;
     // init(): Promise<void>;
-    getFaceEmbeddings(
-        faceImages: Float32Array,
-    ): Promise<Array<FaceEmbedding>>;
+    getFaceEmbeddings(faceImages: Float32Array): Promise<Array<FaceEmbedding>>;
     dispose(): Promise<void>;
+}
+
+export interface BlurDetectionService {
+    method: Versioned<BlurDetectionMethod>;
+    detectBlur(image: number[][]): number;
 }
 
 export interface ClusteringService {

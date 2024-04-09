@@ -81,6 +81,7 @@ export const BLAZEFACE_SCORE_THRESHOLD = 0.75;
 export const BLAZEFACE_PASS1_SCORE_THRESHOLD = 0.4;
 export const BLAZEFACE_FACE_SIZE = 112;
 export const MOBILEFACENET_FACE_SIZE = 112;
+export const MOBILEFACENET_EMBEDDING_SIZE = 192;
 
 // scene detection model takes fixed-shaped (224x224) inputs
 // https://tfhub.dev/sayannath/lite-model/image-scene/1
