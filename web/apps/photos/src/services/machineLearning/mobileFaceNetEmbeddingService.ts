@@ -1,5 +1,7 @@
-import { MOBILEFACENET_FACE_SIZE } from "constants/mlConfig";
-import PQueue from "p-queue";
+import {
+    MOBILEFACENET_EMBEDDING_SIZE,
+    MOBILEFACENET_FACE_SIZE,
+} from "constants/mlConfig";
 import {
     FaceEmbedding,
     FaceEmbeddingMethod,
@@ -21,8 +23,6 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
     public method: Versioned<FaceEmbeddingMethod>;
     public faceSize: number;
 
-    private serialQueue: PQueue;
-
     public constructor(faceSize: number = MOBILEFACENET_FACE_SIZE) {
         this.method = {
             value: "MobileFaceNet",
@@ -30,7 +30,6 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
         };
         this.faceSize = faceSize;
         // TODO: set timeout
-        this.serialQueue = new PQueue({ concurrency: 1 });
     }
 
     private async initOnnx() {
@@ -140,13 +139,11 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
         return processedImage;
     }
 
-    // Do not use this, use getFaceEmbedding which calls this through serialqueue
-    private async getFaceEmbeddingNoQueue(
+    public async getFaceEmbeddings(
         faceData: Float32Array,
-    ): Promise<FaceEmbedding> {
-        // const data = this.preprocessImageBitmapToFloat32(faceData);
+    ): Promise<Array<FaceEmbedding>> {
         const inputTensor = new ort.Tensor("float32", faceData, [
-            1,
+            Math.round(faceData.length / (this.faceSize * this.faceSize * 3)),
             this.faceSize,
             this.faceSize,
             3,
@@ -159,27 +156,18 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
         const test = runout.embeddings;
         // const test2 = test.cpuData;
         const outputData = runout.embeddings["cpuData"] as Float32Array;
-        // const outputData = runout.embeddings as Float32Array;
-        return new Float32Array(outputData);
-    }
-
-    // TODO: TFLiteModel seems to not work concurrenly,
-    // remove serialqueue if that is not the case
-    private async getFaceEmbedding(
-        faceImage: Float32Array,
-    ): Promise<FaceEmbedding> {
-        // @ts-expect-error "TODO: Fix ML related type errors"
-        return this.serialQueue.add(() =>
-            this.getFaceEmbeddingNoQueue(faceImage),
+        const embeddings = new Array<FaceEmbedding>(
+            outputData.length / MOBILEFACENET_EMBEDDING_SIZE,
         );
-    }
-
-    public async getFaceEmbeddings(
-        faceImages: Array<Float32Array>,
-    ): Promise<Array<FaceEmbedding>> {
-        return Promise.all(
-            faceImages.map((faceImage) => this.getFaceEmbedding(faceImage)),
-        );
+        for (let i = 0; i < embeddings.length; i++) {
+            embeddings[i] = new Float32Array(
+                outputData.slice(
+                    i * MOBILEFACENET_EMBEDDING_SIZE,
+                    (i + 1) * MOBILEFACENET_EMBEDDING_SIZE,
+                ),
+            );
+        }
+        return embeddings;
     }
 
     public async dispose() {

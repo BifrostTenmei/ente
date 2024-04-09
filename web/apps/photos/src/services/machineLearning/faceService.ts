@@ -108,7 +108,7 @@ class FaceService {
     async syncFileFaceAlignments(
         syncContext: MLSyncContext,
         fileContext: MLSyncFileContext,
-    ): Promise<Array<Float32Array>> {
+    ): Promise<Float32Array> {
         const { oldMlFile, newMlFile } = fileContext;
         if (
             !fileContext.newDetection &&
@@ -154,7 +154,7 @@ class FaceService {
     async syncFileFaceEmbeddings(
         syncContext: MLSyncContext,
         fileContext: MLSyncFileContext,
-        alignedFacesInput: Array<Float32Array>,
+        alignedFacesInput: Float32Array,
     ) {
         const { oldMlFile, newMlFile } = fileContext;
         if (

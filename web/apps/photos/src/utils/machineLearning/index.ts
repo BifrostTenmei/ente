@@ -252,10 +252,15 @@ export async function extractFaceImagesToFloat32(
     faceAlignments: Array<FaceAlignment>,
     faceSize: number,
     image: ImageBitmap,
-) : Promise<Array<Float32Array>> {
-    return faceAlignments.map((alignment) =>
-        warpAffineFloat32List(image, alignment, faceSize),
-    );
+) : Promise<Float32Array> {
+
+    const faceData = new Float32Array(faceAlignments.length * faceSize * faceSize * 3);
+    for (let i = 0; i < faceAlignments.length; i++) {
+        const alignedFace = faceAlignments[i];
+        const faceDataOffset = i * faceSize * faceSize * 3;
+        warpAffineFloat32List(image, alignedFace, faceSize, faceData, faceDataOffset);
+    }
+    return faceData;
 }
 
 export function leftFillNum(num: number, length: number, padding: number) {

@@ -218,7 +218,9 @@ export function warpAffineFloat32List(
     imageBitmap: ImageBitmap,
     faceAlignment: FaceAlignment,
     faceSize: number,
-): Float32Array {
+    inputData: Float32Array,
+    inputStartIndex: number,
+): void {
     // Get the pixel data
     const offscreenCanvas = new OffscreenCanvas(
         imageBitmap.width,
@@ -251,8 +253,6 @@ export function warpAffineFloat32List(
     const a10Prime = Ainverse.get(1, 0);
     const a11Prime = Ainverse.get(1, 1);
 
-    const inputData = new Float32Array(faceSize * faceSize * 3);
-
     for (let yTrans = 0; yTrans < faceSize; ++yTrans) {
         for (let xTrans = 0; xTrans < faceSize; ++xTrans) {
             // Perform inverse affine transformation
@@ -272,12 +272,11 @@ export function warpAffineFloat32List(
 
             // Set the pixel in the input data
             const index = (yTrans * faceSize + xTrans) * 3;
-            inputData[index] = normalizePixelBetweenMinus1And1(pixel.r);
-            inputData[index + 1] = normalizePixelBetweenMinus1And1(pixel.g);
-            inputData[index + 2] = normalizePixelBetweenMinus1And1(pixel.b);
+            inputData[inputStartIndex + index] = normalizePixelBetweenMinus1And1(pixel.r);
+            inputData[inputStartIndex + index + 1] = normalizePixelBetweenMinus1And1(pixel.g);
+            inputData[inputStartIndex + index + 2] = normalizePixelBetweenMinus1And1(pixel.b);
         }
     }
-    return inputData;
 }
 
 export function resizeToSquare(img: ImageBitmap, size: number) {
