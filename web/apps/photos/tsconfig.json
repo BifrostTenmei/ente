@@ -23,5 +23,5 @@
         "**/*.js",
         "../../packages/shared/themes/mui-theme.d.ts"
     ],
-    "exclude": ["node_modules", "out", ".next", "thirdparty"]
+    "exclude": ["node_modules", "out", ".next", "thirdparty", "public"]
 }
