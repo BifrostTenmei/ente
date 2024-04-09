@@ -401,7 +401,7 @@ class MachineLearningService {
         try {
             await ReaderService.getImageBitmap(syncContext, fileContext);
             await Promise.all([
-                this.syncFaceDetections(syncContext, fileContext),
+                this.syncFileAnalyzeFaces(syncContext, fileContext),
                 // ObjectService.syncFileObjectDetections(
                 //     syncContext,
                 //     fileContext
@@ -503,7 +503,7 @@ class MachineLearningService {
         await this.persistMLLibraryData(syncContext);
     }
 
-    private async syncFaceDetections(
+    private async syncFileAnalyzeFaces(
         syncContext: MLSyncContext,
         fileContext: MLSyncFileContext,
     ) {
