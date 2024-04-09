@@ -191,6 +191,32 @@ class FaceService {
         // addLogLine('5 TF Memory stats: ',JSON.stringify(tf.memory()));
     }
 
+    async syncFileFaceMakeRelativeDetections(
+        syncContext: MLSyncContext,
+        fileContext: MLSyncFileContext,
+    ) {
+        const { oldMlFile, newMlFile } = fileContext;
+        if (
+            !fileContext.newAlignment &&
+            !isDifferentOrOld(
+                oldMlFile?.faceEmbeddingMethod,
+                syncContext.faceEmbeddingService.method,
+            ) &&
+            areFaceIdsSame(newMlFile.faces, oldMlFile?.faces)
+        ) {
+            return;
+        }
+        for (let i = 0; i < newMlFile.faces.length; i++) {
+            const face = newMlFile.faces[i];
+            if (face.detection.box.x + face.detection.box.width < 2) continue; // Skip if somehow already relative
+            face.detection =
+                syncContext.faceDetectionService.getRelativeDetection(
+                    face.detection,
+                    newMlFile.imageDimensions,
+                );
+        }
+    }
+
     async saveFaceCrop(
         imageBitmap: ImageBitmap,
         face: Face,

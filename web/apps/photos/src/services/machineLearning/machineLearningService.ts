@@ -517,6 +517,8 @@ class MachineLearningService {
             const alignedFacesData = await FaceService.syncFileFaceAlignments(syncContext, fileContext);
 
             await FaceService.syncFileFaceEmbeddings(syncContext, fileContext, alignedFacesData);
+
+            await FaceService.syncFileFaceMakeRelativeDetections(syncContext, fileContext);
         }
         addLogLine(
             `face detection time taken ${fileContext.enteFile.id}`,

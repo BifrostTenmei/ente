@@ -24,6 +24,7 @@ import { Box, Point } from "../../../thirdparty/face-api/classes";
 
 import * as ort from "onnxruntime-web";
 import { env } from "onnxruntime-web";
+import { Dimensions } from "types/image";
 
 env.wasm.wasmPaths = "/js/onnx/";
 class YoloFaceDetectionService implements FaceDetectionService {
@@ -244,6 +245,29 @@ class YoloFaceDetectionService implements FaceDetectionService {
         }
         return faces;
     }
+
+    public getRelativeDetection(
+        faceDetection: FaceDetection,
+        dimensions: Dimensions,
+    ): FaceDetection {
+        const oldBox: Box = faceDetection.box;
+        const box = new Box({
+            x: oldBox.x / dimensions.width,
+            y: oldBox.y / dimensions.height,
+            width: oldBox.width / dimensions.width,
+            height: oldBox.height / dimensions.height,
+        });
+        const oldLandmarks: Point[] = faceDetection.landmarks;
+        const landmarks = oldLandmarks.map((l) => {
+            return new Point(l.x / dimensions.width, l.y / dimensions.height);
+        });
+        return {
+            box,
+            landmarks,
+            probability: faceDetection.probability,
+        };
+    }
+
     private async estimateOnnx(imageBitmap: ImageBitmap) {
         const maxFaceDistance = imageBitmap.width * MAX_FACE_DISTANCE_PERCENT;
         const preprocessResult =

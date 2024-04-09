@@ -334,6 +334,10 @@ export interface FaceDetectionService {
     method: Versioned<FaceDetectionMethod>;
     // init(): Promise<void>;
     detectFaces(image: ImageBitmap): Promise<Array<FaceDetection>>;
+    getRelativeDetection(
+        faceDetection: FaceDetection,
+        imageDimensions: Dimensions,
+    ): FaceDetection;
     dispose(): Promise<void>;
 }
 
