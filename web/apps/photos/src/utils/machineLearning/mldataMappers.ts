@@ -189,17 +189,17 @@ export function localFileMlDataToServerFileMl(
         const box = detection.box;
         const landmarks = detection.landmarks;
         const newBox = new FaceBox(
-            Math.round(box.x / imageDimensions.width),
-            Math.round(box.y / imageDimensions.height),
-            Math.round(box.width / imageDimensions.width),
-            Math.round(box.height / imageDimensions.height),
+            box.x,
+            box.y,
+            box.width,
+            box.height,
         );
         const newLandmarks: Landmark[] = [];
         for (let j = 0; j < landmarks.length; j++) {
             newLandmarks.push(
                 new Landmark(
-                    Math.round(landmarks[j].x / imageDimensions.width),
-                    Math.round(landmarks[j].y / imageDimensions.height),
+                    landmarks[j].x,
+                    landmarks[j].y,
                 ),
             );
         }
@@ -237,17 +237,17 @@ export function ServerFileMlToLocalFileMlData(
         const box = detection.box;
         const landmarks = detection.landmarks;
         const newBox = new FaceBox(
-            box.xMin * serverFileMl.width,
-            box.yMin * serverFileMl.height,
-            box.width * serverFileMl.width,
-            box.height * serverFileMl.height,
+            box.xMin,
+            box.yMin,
+            box.width,
+            box.height,
         );
         const newLandmarks: Landmark[] = [];
         for (let j = 0; j < landmarks.length; j++) {
             newLandmarks.push(
                 new Landmark(
-                    landmarks[j].x * serverFileMl.width,
-                    landmarks[j].y * serverFileMl.height,
+                    landmarks[j].x,
+                    landmarks[j].y,
                 ),
             );
         }
