@@ -1,6 +1,8 @@
 // these utils only work in env where OffscreenCanvas is available
 
+import { Matrix, inverse } from "ml-matrix";
 import { BlobOptions, Dimensions } from "types/image";
+import { FaceAlignment } from "types/machineLearning";
 import { enlargeBox } from "utils/machineLearning";
 import { Box } from "../../../thirdparty/face-api/classes";
 
@@ -210,6 +212,72 @@ export function getPixelBilinear(
     const blue = bilinear(pixel1.b, pixel2.b, pixel3.b, pixel4.b);
 
     return { r: red, g: green, b: blue };
+}
+
+export function warpAffineFloat32List(
+    imageBitmap: ImageBitmap,
+    faceAlignment: FaceAlignment,
+    faceSize: number,
+): Float32Array {
+    // Get the pixel data
+    const offscreenCanvas = new OffscreenCanvas(
+        imageBitmap.width,
+        imageBitmap.height,
+    );
+    const ctx = offscreenCanvas.getContext("2d");
+    ctx.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height);
+    const imageData = ctx.getImageData(
+        0,
+        0,
+        imageBitmap.width,
+        imageBitmap.height,
+    );
+    const pixelData = imageData.data;
+
+    const transformationMatrix = faceAlignment.affineMatrix.map((row) =>
+        row.map((val) => (val != 1.0 ? val * faceSize : 1.0)),
+    ); // 3x3
+
+    const A: Matrix = new Matrix([
+        [transformationMatrix[0][0], transformationMatrix[0][1]],
+        [transformationMatrix[1][0], transformationMatrix[1][1]],
+    ]);
+    const Ainverse = inverse(A);
+
+    const b00 = transformationMatrix[0][2];
+    const b10 = transformationMatrix[1][2];
+    const a00Prime = Ainverse.get(0, 0);
+    const a01Prime = Ainverse.get(0, 1);
+    const a10Prime = Ainverse.get(1, 0);
+    const a11Prime = Ainverse.get(1, 1);
+
+    const inputData = new Float32Array(faceSize * faceSize * 3);
+
+    for (let yTrans = 0; yTrans < faceSize; ++yTrans) {
+        for (let xTrans = 0; xTrans < faceSize; ++xTrans) {
+            // Perform inverse affine transformation
+            const xOrigin =
+                a00Prime * (xTrans - b00) + a01Prime * (yTrans - b10);
+            const yOrigin =
+                a10Prime * (xTrans - b00) + a11Prime * (yTrans - b10);
+
+            // Get the pixel from interpolation
+            const pixel = getPixelBicubic(
+                xOrigin,
+                yOrigin,
+                pixelData,
+                imageBitmap.width,
+                imageBitmap.height,
+            );
+
+            // Set the pixel in the input data
+            const index = (yTrans * faceSize + xTrans) * 3;
+            inputData[index] = normalizePixelBetweenMinus1And1(pixel.r);
+            inputData[index + 1] = normalizePixelBetweenMinus1And1(pixel.g);
+            inputData[index + 2] = normalizePixelBetweenMinus1And1(pixel.b);
+        }
+    }
+    return inputData;
 }
 
 export function resizeToSquare(img: ImageBitmap, size: number) {

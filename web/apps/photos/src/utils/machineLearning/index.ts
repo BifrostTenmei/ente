@@ -17,6 +17,7 @@ import {
     DetectedFace,
     DetectedObject,
     Face,
+    FaceAlignment,
     FaceImageBlob,
     MlFileData,
     Person,
@@ -24,14 +25,11 @@ import {
     Versioned,
 } from "types/machineLearning";
 import { getRenderableImage } from "utils/file";
-import { clamp, imageBitmapToBlob } from "utils/image";
+import { clamp, imageBitmapToBlob, warpAffineFloat32List } from "utils/image";
 import mlIDbStorage from "utils/storage/mlIDbStorage";
 import { Box, Point } from "../../../thirdparty/face-api/classes";
 import { ibExtractFaceImage, ibExtractFaceImages } from "./faceAlign";
-import {
-    getFaceCropBlobFromStorage,
-    ibExtractFaceImagesFromCrops,
-} from "./faceCrop";
+import { getFaceCropBlobFromStorage } from "./faceCrop";
 
 export function f32Average(descriptors: Float32Array[]) {
     if (descriptors.length < 1) {
@@ -237,9 +235,10 @@ export async function extractFaceImages(
     faceSize: number,
     image?: ImageBitmap,
 ) {
-    if (faces.length === faces.filter((f) => f.crop).length) {
-        return ibExtractFaceImagesFromCrops(faces, faceSize);
-    } else if (image) {
+    // if (faces.length === faces.filter((f) => f.crop).length) {
+    // return ibExtractFaceImagesFromCrops(faces, faceSize);
+    // } else
+    if (image) {
         const faceAlignments = faces.map((f) => f.alignment);
         return ibExtractFaceImages(image, faceAlignments, faceSize);
     } else {
@@ -247,6 +246,16 @@ export async function extractFaceImages(
             "Either face crops or image is required to extract face images",
         );
     }
+}
+
+export async function extractFaceImagesToFloat32(
+    faceAlignments: Array<FaceAlignment>,
+    faceSize: number,
+    image: ImageBitmap,
+) : Promise<Array<Float32Array>> {
+    return faceAlignments.map((alignment) =>
+        warpAffineFloat32List(image, alignment, faceSize),
+    );
 }
 
 export function leftFillNum(num: number, length: number, padding: number) {

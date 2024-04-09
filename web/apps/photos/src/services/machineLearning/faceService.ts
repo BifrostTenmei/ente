@@ -8,7 +8,7 @@ import {
 import { imageBitmapToBlob } from "utils/image";
 import {
     areFaceIdsSame,
-    extractFaceImages,
+    extractFaceImagesToFloat32,
     getFaceId,
     getLocalFile,
     getOriginalImageBitmap,
@@ -108,7 +108,7 @@ class FaceService {
     async syncFileFaceAlignments(
         syncContext: MLSyncContext,
         fileContext: MLSyncFileContext,
-    ) {
+    ): Promise<Array<Float32Array>> {
         const { oldMlFile, newMlFile } = fileContext;
         if (
             !fileContext.newDetection &&
@@ -127,18 +127,34 @@ class FaceService {
 
         newMlFile.faceAlignmentMethod = syncContext.faceAlignmentService.method;
         fileContext.newAlignment = true;
+        const imageBitmap =
+            fileContext.imageBitmap ||
+            (await ReaderService.getImageBitmap(syncContext, fileContext));
+
+        // Execute the face alignment calculations
         for (const face of newMlFile.faces) {
             face.alignment = syncContext.faceAlignmentService.getFaceAlignment(
                 face.detection,
             );
         }
+
+        // Extract face images and convert to Float32Array
+        const faceAlignments = newMlFile.faces.map((f) => f.alignment);
+        const faceImages = await extractFaceImagesToFloat32(
+            faceAlignments,
+            syncContext.faceEmbeddingService.faceSize,
+            imageBitmap,
+        );
+        imageBitmap.close();
         addLogLine("[MLService] alignedFaces: ", newMlFile.faces?.length);
         // addLogLine('4 TF Memory stats: ',JSON.stringify(tf.memory()));
+        return faceImages;
     }
 
     async syncFileFaceEmbeddings(
         syncContext: MLSyncContext,
         fileContext: MLSyncFileContext,
+        alignedFacesInput: Array<Float32Array>,
     ) {
         const { oldMlFile, newMlFile } = fileContext;
         if (
@@ -160,16 +176,11 @@ class FaceService {
         // TODO: when not storing face crops, image will be needed to extract faces
         // fileContext.imageBitmap ||
         //     (await this.getImageBitmap(syncContext, fileContext));
-        const faceImages = await extractFaceImages(
-            newMlFile.faces,
-            syncContext.faceEmbeddingService.faceSize,
-        );
 
         const embeddings =
             await syncContext.faceEmbeddingService.getFaceEmbeddings(
-                faceImages,
+                alignedFacesInput,
             );
-        faceImages.forEach((faceImage) => faceImage.close());
         newMlFile.faces.forEach((f, i) => (f.embedding = embeddings[i]));
 
         addLogLine("[MLService] facesWithEmbeddings: ", newMlFile.faces.length);

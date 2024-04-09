@@ -142,10 +142,10 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
 
     // Do not use this, use getFaceEmbedding which calls this through serialqueue
     private async getFaceEmbeddingNoQueue(
-        faceImage: ImageBitmap,
+        faceData: Float32Array,
     ): Promise<FaceEmbedding> {
-        const data = this.preprocessImageBitmapToFloat32(faceImage);
-        const inputTensor = new ort.Tensor("float32", data, [
+        // const data = this.preprocessImageBitmapToFloat32(faceData);
+        const inputTensor = new ort.Tensor("float32", faceData, [
             1,
             this.faceSize,
             this.faceSize,
@@ -166,7 +166,7 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
     // TODO: TFLiteModel seems to not work concurrenly,
     // remove serialqueue if that is not the case
     private async getFaceEmbedding(
-        faceImage: ImageBitmap,
+        faceImage: Float32Array,
     ): Promise<FaceEmbedding> {
         // @ts-expect-error "TODO: Fix ML related type errors"
         return this.serialQueue.add(() =>
@@ -175,7 +175,7 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
     }
 
     public async getFaceEmbeddings(
-        faceImages: Array<ImageBitmap>,
+        faceImages: Array<Float32Array>,
     ): Promise<Array<FaceEmbedding>> {
         return Promise.all(
             faceImages.map((faceImage) => this.getFaceEmbedding(faceImage)),

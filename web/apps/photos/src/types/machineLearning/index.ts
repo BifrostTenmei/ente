@@ -367,7 +367,7 @@ export interface FaceEmbeddingService {
     faceSize: number;
     // init(): Promise<void>;
     getFaceEmbeddings(
-        faceImages: Array<ImageBitmap>,
+        faceImages: Array<Float32Array>,
     ): Promise<Array<FaceEmbedding>>;
     dispose(): Promise<void>;
 }
