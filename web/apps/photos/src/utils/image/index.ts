@@ -14,6 +14,10 @@ export function normalizePixelBetweenMinus1And1(pixelValue: number) {
     return pixelValue / 127.5 - 1.0;
 }
 
+export function unnormalizePixelFromBetweenMinus1And1(pixelValue: number) {
+    return clamp(Math.round((pixelValue + 1.0) * 127.5), 0, 255);
+}
+
 export function readPixelColor(
     imageData: Uint8ClampedArray,
     width: number,
@@ -272,11 +276,46 @@ export function warpAffineFloat32List(
 
             // Set the pixel in the input data
             const index = (yTrans * faceSize + xTrans) * 3;
-            inputData[inputStartIndex + index] = normalizePixelBetweenMinus1And1(pixel.r);
-            inputData[inputStartIndex + index + 1] = normalizePixelBetweenMinus1And1(pixel.g);
-            inputData[inputStartIndex + index + 2] = normalizePixelBetweenMinus1And1(pixel.b);
+            inputData[inputStartIndex + index] =
+                normalizePixelBetweenMinus1And1(pixel.r);
+            inputData[inputStartIndex + index + 1] =
+                normalizePixelBetweenMinus1And1(pixel.g);
+            inputData[inputStartIndex + index + 2] =
+                normalizePixelBetweenMinus1And1(pixel.b);
         }
     }
+}
+
+export function createGrayscaleIntMatrixFromNormalized2List(
+    imageList: Float32Array,
+    startIndex: number,
+    width: number = 112,
+    height: number = 112,
+): number[][] {
+    return Array.from({ length: height }, (_, y) =>
+        Array.from({ length: width }, (_, x) => {
+            // 0.299 ∙ Red + 0.587 ∙ Green + 0.114 ∙ Blue
+            const pixelIndex = startIndex + 3 * (y * width + x);
+            return clamp(
+                Math.round(
+                    0.299 *
+                        unnormalizePixelFromBetweenMinus1And1(
+                            imageList[pixelIndex],
+                        ) +
+                        0.587 *
+                            unnormalizePixelFromBetweenMinus1And1(
+                                imageList[pixelIndex + 1],
+                            ) +
+                        0.114 *
+                            unnormalizePixelFromBetweenMinus1And1(
+                                imageList[pixelIndex + 2],
+                            ),
+                ),
+                0,
+                255,
+            );
+        }),
+    );
 }
 
 export function resizeToSquare(img: ImageBitmap, size: number) {
