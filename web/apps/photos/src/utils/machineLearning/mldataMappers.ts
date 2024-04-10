@@ -1,28 +1,30 @@
-import { FaceDetection, MlFileData } from "types/machineLearning";
+import { Face, FaceDetection, Landmark, MlFileData } from "types/machineLearning";
 import { ClipEmbedding } from "types/machineLearning/data/clip";
+
+export interface FileML extends ServerFileMl {
+    updatedAt: number;
+}
 
 class ServerFileMl {
     public fileID: number;
     public height?: number;
     public width?: number;
-    public faceEmbeddings: FaceEmbeddings;
+    public faceEmbedding: ServerFaceEmbeddings;
     public clipEmbedding?: ClipEmbedding;
-    public updationTime?: number;
+
 
     public constructor(
         fileID: number,
-        faceEmbedding: FaceEmbeddings,
+        faceEmbedding: ServerFaceEmbeddings,
         clipEmbedding?: ClipEmbedding,
         height?: number,
         width?: number,
-        updationTime?: number,
     ) {
         this.fileID = fileID;
         this.height = height;
         this.width = width;
-        this.faceEmbeddings = faceEmbedding;
+        this.faceEmbedding = faceEmbedding;
         this.clipEmbedding = clipEmbedding;
-        this.updationTime = updationTime;
     }
 
     toJson(): string {
@@ -34,14 +36,14 @@ class ServerFileMl {
     }
 }
 
-class FaceEmbeddings {
-    public faces: Face[];
+class ServerFaceEmbeddings {
+    public faces: ServerFace[];
     public version: number;
     public client?: string;
     public error?: boolean;
 
     public constructor(
-        faces: Face[],
+        faces: ServerFace[],
         version: number,
         client?: string,
         error?: boolean,
@@ -56,32 +58,32 @@ class FaceEmbeddings {
         return JSON.stringify(this);
     }
 
-    static fromJson(json: string): FaceEmbeddings {
+    static fromJson(json: string): ServerFaceEmbeddings {
         return JSON.parse(json);
     }
 }
 
-class Face {
+class ServerFace {
     public fileID: number;
     public faceID: string;
-    public embedding: number[];
-    public detection: Detection;
+    public embeddings: number[];
+    public detection: ServerDetection;
     public score: number;
     public blur: number;
-    public fileInfo?: FileInfo;
+    public fileInfo?: ServerFileInfo;
 
     public constructor(
         fileID: number,
         faceID: string,
-        embedding: number[],
-        detection: Detection,
+        embeddings: number[],
+        detection: ServerDetection,
         score: number,
         blur: number,
-        fileInfo?: FileInfo,
+        fileInfo?: ServerFileInfo,
     ) {
         this.fileID = fileID;
         this.faceID = faceID;
-        this.embedding = embedding;
+        this.embeddings = embeddings;
         this.detection = detection;
         this.score = score;
         this.blur = blur;
@@ -92,12 +94,12 @@ class Face {
         return JSON.stringify(this);
     }
 
-    static fromJson(json: string): Face {
+    static fromJson(json: string): ServerFace {
         return JSON.parse(json);
     }
 }
 
-class FileInfo {
+class ServerFileInfo {
     public imageWidth?: number;
     public imageHeight?: number;
 
@@ -107,11 +109,11 @@ class FileInfo {
     }
 }
 
-class Detection {
-    public box: FaceBox;
+class ServerDetection {
+    public box: ServerFaceBox;
     public landmarks: Landmark[];
 
-    public constructor(box: FaceBox, landmarks: Landmark[]) {
+    public constructor(box: ServerFaceBox, landmarks: Landmark[]) {
         this.box = box;
         this.landmarks = landmarks;
     }
@@ -120,12 +122,12 @@ class Detection {
         return JSON.stringify(this);
     }
 
-    static fromJson(json: string): Detection {
+    static fromJson(json: string): ServerDetection {
         return JSON.parse(json);
     }
 }
 
-class FaceBox {
+class ServerFaceBox {
     public xMin: number;
     public yMin: number;
     public width: number;
@@ -147,40 +149,26 @@ class FaceBox {
         return JSON.stringify(this);
     }
 
-    static fromJson(json: string): FaceBox {
+    static fromJson(json: string): ServerFaceBox {
         return JSON.parse(json);
     }
 }
 
-class Landmark {
-    public x: number;
-    public y: number;
 
-    public constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
-
-    toJson(): string {
-        return JSON.stringify(this);
-    }
-
-    static fromJson(json: string): Landmark {
-        return JSON.parse(json);
-    }
-}
-
-export function localFileMlDataToServerFileMl(
+export function LocalFileMlDataToServerFileMl(
     localFileMlData: MlFileData,
 ): ServerFileMl {
+    if(localFileMlData.errorCount > 0 && localFileMlData.lastErrorMessage !== undefined) {
+        return null
+    }
     const imageDimensions = localFileMlData.imageDimensions;
-    const fileInfo = new FileInfo(
+    const fileInfo = new ServerFileInfo(
         imageDimensions.width,
         imageDimensions.height,
     );
-    const faces: Face[] = [];
+    const faces: ServerFace[] = [];
     for (let i = 0; i < localFileMlData.faces.length; i++) {
-        const face = localFileMlData.faces[i];
+        const face: Face = localFileMlData.faces[i];
         const faceID = face.id;
         const embedding = face.embedding;
         const score = face.detection.probability;
@@ -188,7 +176,7 @@ export function localFileMlDataToServerFileMl(
         const detection: FaceDetection = face.detection;
         const box = detection.box;
         const landmarks = detection.landmarks;
-        const newBox = new FaceBox(
+        const newBox = new ServerFaceBox(
             box.x,
             box.y,
             box.width,
@@ -197,24 +185,25 @@ export function localFileMlDataToServerFileMl(
         const newLandmarks: Landmark[] = [];
         for (let j = 0; j < landmarks.length; j++) {
             newLandmarks.push(
-                new Landmark(
-                    landmarks[j].x,
-                    landmarks[j].y,
-                ),
-            );
+                 {
+                    x: landmarks[j].x,
+                    y: landmarks[j].y,
+                 } as Landmark,
+                );
         }
-        const newFaceObject = new Face(
+        
+        const newFaceObject = new ServerFace(
             localFileMlData.fileId,
             faceID,
             Array.from(embedding),
-            new Detection(newBox, newLandmarks),
+            new ServerDetection(newBox, newLandmarks),
             score,
             blur,
             fileInfo,
         );
         faces.push(newFaceObject);
     }
-    const faceEmbeddings = new FaceEmbeddings(faces, 1, "web");
+    const faceEmbeddings = new ServerFaceEmbeddings(faces, 1,localFileMlData.lastErrorMessage);
     return new ServerFileMl(
         localFileMlData.fileId,
         faceEmbeddings,
@@ -224,53 +213,51 @@ export function localFileMlDataToServerFileMl(
     );
 }
 
-// Not sure if this actually works
-export function ServerFileMlToLocalFileMlData(
-    serverFileMl: ServerFileMl,
-): MlFileData {
-    const faces: Face[] = [];
-    const mlVersion: number = serverFileMl.faceEmbeddings.version;
-    const errorCount = serverFileMl.faceEmbeddings.error ? 1 : 0;
-    for (let i = 0; i < serverFileMl.faceEmbeddings.faces.length; i++) {
-        const face = serverFileMl.faceEmbeddings.faces[i];
-        const detection = face.detection;
-        const box = detection.box;
-        const landmarks = detection.landmarks;
-        const newBox = new FaceBox(
-            box.xMin,
-            box.yMin,
-            box.width,
-            box.height,
-        );
-        const newLandmarks: Landmark[] = [];
-        for (let j = 0; j < landmarks.length; j++) {
-            newLandmarks.push(
-                new Landmark(
-                    landmarks[j].x,
-                    landmarks[j].y,
-                ),
-            );
-        }
-        const newDetection = new Detection(newBox, newLandmarks);
-        const newFace = new Face(
-            serverFileMl.fileID,
-            face.faceID,
-            face.embedding,
-            newDetection,
-            face.score,
-            face.blur,
-            new FileInfo(serverFileMl.width, serverFileMl.height),
-        );
-        faces.push(newFace);
-    }
-    return {
-        fileId: serverFileMl.fileID,
-        imageDimensions: {
-            width: serverFileMl.width,
-            height: serverFileMl.height,
-        },
-        faces,
-        mlVersion,
-        errorCount,
-    };
-}
+
+// // Not sure if this actually works
+// export function ServerFileMlToLocalFileMlData(
+//     serverFileMl: ServerFileMl,
+// ): MlFileData {
+//     const faces: Face[] = [];
+//     const mlVersion: number = serverFileMl.faceEmbeddings.version;
+//     const errorCount = serverFileMl.faceEmbeddings.error ? 1 : 0;
+//     for (let i = 0; i < serverFileMl.faceEmbeddings.faces.length; i++) {
+//         const face = serverFileMl.faceEmbeddings.faces[i];
+//         if(face.detection.landmarks.length === 0) {
+//             continue;
+//         }
+//         const detection = face.detection;
+//         const box = detection.box;
+//         const landmarks = detection.landmarks;
+//         const newBox = new FaceBox(
+//             box.xMin,
+//             box.yMin,
+//             box.width,
+//             box.height,
+//         );
+//         const newLandmarks: Landmark[] = [];
+//         for (let j = 0; j < landmarks.length; j++) {
+//             newLandmarks.push(
+//                 {
+//                  x:   landmarks[j].x,
+//                 y: landmarks[j].y,
+//         } as Landmark
+//             );
+//         }
+//         const newDetection = new Detection(newBox, newLandmarks);
+//         const newFace = {
+
+//         } as Face
+//         faces.push(newFace);
+//     }
+//     return {
+//         fileId: serverFileMl.fileID,
+//         imageDimensions: {
+//             width: serverFileMl.width,
+//             height: serverFileMl.height,
+//         },
+//         faces,
+//         mlVersion,
+//         errorCount,
+//     };
+// }

@@ -1,5 +1,5 @@
 import { Embedding } from "types/embedding";
-import { FileML } from "types/machineLearning/data/fileML";
+import { FileML } from "./machineLearning/mldataMappers";
 
 export const getLatestVersionEmbeddings = (embeddings: Embedding[]) => {
     const latestVersionEntities = new Map<number, Embedding>();

@@ -17,7 +17,7 @@ import { getLatestVersionEmbeddings,getLatestVersionFileEmbeddings } from "utils
 import { getLocalCollections } from "./collectionService";
 import { getAllLocalFiles } from "./fileService";
 import { getLocalTrashedFiles } from "./trashService";
-import { FileML } from "types/machineLearning/data/fileML";
+import { FileML } from "utils/machineLearning/mldataMappers";
 
 const ENDPOINT = getEndpoint();
 
@@ -40,7 +40,7 @@ export const getAllLocalEmbeddings = async () => {
     return embeddings;
 };
 
-export const getAllFileEmbeddings = async (): Promise<FileML[]> => {
+export const getFileMLEmbeddings = async (): Promise<FileML[]> => {
     const embeddings: Array<FileML> =
         await localForage.getItem<FileML[]>(FILE_EMBEDING_TABLE);
     if (!embeddings) {
@@ -154,7 +154,7 @@ export const syncEmbeddings = async () => {
 export const syncFileEmbeddings = async () => {
     const models: EmbeddingModel[] = ["file-ml-clip-face"];
     try {
-        let allEmbeddings :FileML[] = await getAllFileEmbeddings();
+        let allEmbeddings :FileML[] = await getFileMLEmbeddings();
         const localFiles = await getAllLocalFiles();
         const hiddenAlbums = await getLocalCollections("hidden");
         const localTrashFiles = await getLocalTrashedFiles();
@@ -188,7 +188,7 @@ export const syncFileEmbeddings = async () => {
                             if (!fileKey) {
                                 throw Error(CustomError.FILE_NOT_FOUND);
                             }
-                            const decryptedData = await worker.decryptGenericEmbedding(
+                            const decryptedData = await worker.decryptMetadata(
                                 embedding.encryptedEmbedding,
                                 embedding.decryptionHeader,
                                 fileIdToKeyMap.get(embedding.fileID),
@@ -263,7 +263,8 @@ export const putEmbedding = async (
     try {
         const token = getToken();
         if (!token) {
-            return;
+            log.info('putEmbedding failed: token not found');
+            throw Error(CustomError.TOKEN_MISSING);
         }
         const resp = await HTTPService.put(
             `${ENDPOINT}/embeddings`,
