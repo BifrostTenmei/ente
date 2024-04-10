@@ -228,7 +228,7 @@ export function localFileMlDataToServerFileMl(
 export function ServerFileMlToLocalFileMlData(
     serverFileMl: ServerFileMl,
 ): MlFileData {
-    const faces = [];
+    const faces: Face[] = [];
     const mlVersion: number = serverFileMl.faceEmbeddings.version;
     const errorCount = serverFileMl.faceEmbeddings.error ? 1 : 0;
     for (let i = 0; i < serverFileMl.faceEmbeddings.faces.length; i++) {

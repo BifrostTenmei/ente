@@ -105,7 +105,7 @@ import { AppContext } from "pages/_app";
 import { clipService } from "services/clip-service";
 import { constructUserIDToEmailMap } from "services/collectionService";
 import downloadManager from "services/download";
-import { syncEmbeddings } from "services/embeddingService";
+import { syncEmbeddings, syncFileEmbeddings } from "services/embeddingService";
 import { syncEntities } from "services/entityService";
 import locationSearchService from "services/locationSearchService";
 import { getLocalTrashedFiles, syncTrash } from "services/trashService";
@@ -704,6 +704,7 @@ export default function Gallery() {
             await syncEntities();
             await syncMapEnabled();
             await syncEmbeddings();
+            await syncFileEmbeddings()
             if (clipService.isPlatformSupported()) {
                 void clipService.scheduleImageEmbeddingExtraction();
             }

@@ -5,8 +5,9 @@ export interface FileML {
     fileID: number;
     clip? : ClipEmbedding;
     faces : Face[];
-    height : number;
-    width : number;
+    height? : number;
+    width? : number;
     version : number;
     error? : string;
+    updatedAt : number;
 }
