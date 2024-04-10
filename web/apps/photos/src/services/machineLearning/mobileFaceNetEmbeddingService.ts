@@ -2,6 +2,10 @@ import {
     MOBILEFACENET_EMBEDDING_SIZE,
     MOBILEFACENET_FACE_SIZE,
 } from "constants/mlConfig";
+import log from "@/next/log";
+import * as tf from "@tensorflow/tfjs-core";
+import { TFLiteModel } from "@tensorflow/tfjs-tflite";
+import PQueue from "p-queue";
 import {
     FaceEmbedding,
     FaceEmbeddingMethod,
@@ -109,6 +113,7 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
         const processedImage = new Float32Array(
             1 * requiredWidth * requiredHeight * 3,
         );
+        log.info("loaded mobileFaceNetModel: ", tf.getBackend());
 
         // Populate the Float32Array with normalized pixel values
         for (let h = 0; h < requiredHeight; h++) {

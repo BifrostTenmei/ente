@@ -1,13 +1,5 @@
-import { APP_DOWNLOAD_URL } from "@ente/shared/constants/urls";
-import { CustomError } from "@ente/shared/error";
 import isElectron from "is-electron";
 
-export function checkConnectivity() {
-    if (navigator.onLine) {
-        return true;
-    }
-    throw new Error(CustomError.NO_INTERNET_CONNECTION);
-}
 
 export function runningInBrowser() {
     return typeof window !== "undefined";
@@ -56,10 +48,6 @@ export async function sleep(time: number) {
     });
 }
 
-export function downloadApp() {
-    openLink(APP_DOWNLOAD_URL, true);
-}
-
 export function reverseString(title: string) {
     return title
         ?.split(" ")
@@ -72,27 +60,6 @@ export function initiateEmail(email: string) {
     a.rel = "noreferrer noopener";
     a.click();
 }
-export const promiseWithTimeout = async <T>(
-    request: Promise<T>,
-    timeout: number,
-): Promise<T> => {
-    const timeoutRef = { current: null };
-    const rejectOnTimeout = new Promise<null>((_, reject) => {
-        timeoutRef.current = setTimeout(
-            () => reject(Error(CustomError.WAIT_TIME_EXCEEDED)),
-            timeout,
-        );
-    });
-    const requestWithTimeOutCancellation = async () => {
-        const resp = await request;
-        clearTimeout(timeoutRef.current);
-        return resp;
-    };
-    return await Promise.race([
-        requestWithTimeOutCancellation(),
-        rejectOnTimeout,
-    ]);
-};
 
 export const preloadImage = (imgBasePath: string) => {
     const srcSet = [];
@@ -101,6 +68,7 @@ export const preloadImage = (imgBasePath: string) => {
     }
     new Image().srcset = srcSet.join(",");
 };
+
 export function openLink(href: string, newTab?: boolean) {
     const a = document.createElement("a");
     a.href = href;
@@ -109,24 +77,6 @@ export function openLink(href: string, newTab?: boolean) {
     }
     a.rel = "noreferrer noopener";
     a.click();
-}
-
-export async function waitAndRun(
-    waitPromise: Promise<void>,
-    task: () => Promise<void>,
-) {
-    if (waitPromise && isPromise(waitPromise)) {
-        await waitPromise;
-    }
-    await task();
-}
-
-function isPromise(p: any) {
-    if (typeof p === "object" && typeof p.then === "function") {
-        return true;
-    }
-
-    return false;
 }
 
 export function isClipboardItemPresent() {
@@ -140,11 +90,3 @@ export function batch<T>(arr: T[], batchSize: number): T[][] {
     }
     return batches;
 }
-
-export const mergeMaps = <K, V>(map1: Map<K, V>, map2: Map<K, V>) => {
-    const mergedMap = new Map<K, V>(map1);
-    map2.forEach((value, key) => {
-        mergedMap.set(key, value);
-    });
-    return mergedMap;
-};

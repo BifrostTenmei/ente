@@ -1,4 +1,4 @@
-import { addLogLine } from "@ente/shared/logging";
+import log from "@/next/log";
 import { CacheStorageService } from "@ente/shared/storage/cacheStorage";
 import { CACHES } from "@ente/shared/storage/cacheStorage/constants";
 import * as zip from "@zip.js/zip.js";
@@ -92,7 +92,7 @@ export async function exportMlData(
     }
 
     await mlDataZipWritable.close();
-    addLogLine("Ml Data Exported");
+    log.info("Ml Data Exported");
 }
 
 async function exportMlDataToZipWriter(zipWriter: zip.ZipWriter) {
@@ -100,7 +100,7 @@ async function exportMlDataToZipWriter(zipWriter: zip.ZipWriter) {
     const faceClusteringResults =
         mlDbData?.library?.data?.faceClusteringResults;
     faceClusteringResults && (faceClusteringResults.debugInfo = undefined);
-    addLogLine(
+    log.info(
         "Exporting ML DB data: ",
         JSON.stringify(Object.keys(mlDbData)),
         JSON.stringify(
@@ -137,7 +137,7 @@ async function exportMlDataToZipWriter(zipWriter: zip.ZipWriter) {
                             `caches/${CACHES.FACE_CROPS}${faceCropUrl}`,
                         e,
                     );
-                    addLogLine("Error while adding face crop to zip: ", e);
+                    log.error("Error while adding face crop to zip: ", e);
                 }
             } else {
                 console.error(
@@ -157,7 +157,7 @@ export async function importMlData(mlDataZipFile: File) {
         await zipReader.close();
     }
 
-    addLogLine("ML Data Imported");
+    log.info("ML Data Imported");
 }
 
 async function importMlDataFromZipReader(zipReader: zip.ZipReader) {
@@ -184,7 +184,7 @@ async function importMlDataFromZipReader(zipReader: zip.ZipReader) {
         new zip.TextWriter(),
     );
     const mlDbData = JSON.parse(mlDataJsonStr);
-    addLogLine(
+    log.info(
         "importing ML DB data: ",
         JSON.stringify(Object.keys(mlDbData)),
         JSON.stringify(
