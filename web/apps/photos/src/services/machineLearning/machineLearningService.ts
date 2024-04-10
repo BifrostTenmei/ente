@@ -225,6 +225,7 @@ class MachineLearningService {
             'for batchSize: ',
             syncContext.config.batchSize
         );
+
     }
 
     private async syncFiles(syncContext: MLSyncContext) {
@@ -538,11 +539,21 @@ class MachineLearningService {
         if (newMlFile.faces && newMlFile.faces.length > 0) {
             await FaceService.syncFileFaceCrops(syncContext, fileContext);
 
-            const alignedFacesData = await FaceService.syncFileFaceAlignments(syncContext, fileContext);
+            const alignedFacesData = await FaceService.syncFileFaceAlignments(
+                syncContext,
+                fileContext,
+            );
 
-            await FaceService.syncFileFaceEmbeddings(syncContext, fileContext, alignedFacesData);
+            await FaceService.syncFileFaceEmbeddings(
+                syncContext,
+                fileContext,
+                alignedFacesData,
+            );
 
-            await FaceService.syncFileFaceMakeRelativeDetections(syncContext, fileContext);
+            await FaceService.syncFileFaceMakeRelativeDetections(
+                syncContext,
+                fileContext,
+            );
         }
         log.info(
             `face detection time taken ${fileContext.enteFile.id}`,

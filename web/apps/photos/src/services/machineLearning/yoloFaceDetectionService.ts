@@ -2,6 +2,7 @@ import {
     BLAZEFACE_FACE_SIZE,
     MAX_FACE_DISTANCE_PERCENT,
 } from "constants/mlConfig";
+import { Dimensions } from "types/image";
 import {
     FaceDetection,
     FaceDetectionMethod,
@@ -22,13 +23,17 @@ import {
 } from "utils/machineLearning/transform";
 import { Box, Point } from "../../../thirdparty/face-api/classes";
 
-import * as ort from "onnxruntime-web";
-import { env } from "onnxruntime-web";
-import { Dimensions } from "types/image";
+// TODO(MR): onnx-yolo
+// import * as ort from "onnxruntime-web";
+// import { env } from "onnxruntime-web";
+const ort: any = {};
 
-env.wasm.wasmPaths = "/js/onnx/";
+// TODO(MR): onnx-yolo
+// env.wasm.wasmPaths = "/js/onnx/";
 class YoloFaceDetectionService implements FaceDetectionService {
-    private onnxInferenceSession?: ort.InferenceSession;
+    // TODO(MR): onnx-yolo
+    // private onnxInferenceSession?: ort.InferenceSession;
+    private onnxInferenceSession?: any;
     public method: Versioned<FaceDetectionMethod>;
     private desiredFaceSize;
 
@@ -47,7 +52,9 @@ class YoloFaceDetectionService implements FaceDetectionService {
         );
         const data = new Float32Array(1 * 3 * 640 * 640);
         const inputTensor = new ort.Tensor("float32", data, [1, 3, 640, 640]);
-        const feeds: Record<string, ort.Tensor> = {};
+        // TODO(MR): onnx-yolo
+        // const feeds: Record<string, ort.Tensor> = {};
+        const feeds: Record<string, any> = {};
         const name = this.onnxInferenceSession.inputNames[0];
         feeds[name] = inputTensor;
         await this.onnxInferenceSession.run(feeds);
@@ -279,7 +286,9 @@ class YoloFaceDetectionService implements FaceDetectionService {
         const data = preprocessResult.data;
         const resized = preprocessResult.newSize;
         const inputTensor = new ort.Tensor("float32", data, [1, 3, 640, 640]);
-        const feeds: Record<string, ort.Tensor> = {};
+        // TODO(MR): onnx-yolo
+        // const feeds: Record<string, ort.Tensor> = {};
+        const feeds: Record<string, any> = {};
         feeds["input"] = inputTensor;
         const inferenceSession = await this.getOnnxInferenceSession();
         const runout = await inferenceSession.run(feeds);

@@ -152,7 +152,6 @@ class FaceService {
         log.info("[MLService] alignedFaces: ", newMlFile.faces?.length);
         // log.info('4 TF Memory stats: ',JSON.stringify(tf.memory()));
         return faceImages;
-
     }
 
     async syncFileFaceEmbeddings(

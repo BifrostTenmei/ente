@@ -1,11 +1,11 @@
+import log from "@/next/log";
+import * as tf from "@tensorflow/tfjs-core";
 import {
     MOBILEFACENET_EMBEDDING_SIZE,
     MOBILEFACENET_FACE_SIZE,
 } from "constants/mlConfig";
-import log from "@/next/log";
-import * as tf from "@tensorflow/tfjs-core";
-import { TFLiteModel } from "@tensorflow/tfjs-tflite";
-import PQueue from "p-queue";
+// import { TFLiteModel } from "@tensorflow/tfjs-tflite";
+// import PQueue from "p-queue";
 import {
     FaceEmbedding,
     FaceEmbeddingMethod,
@@ -13,17 +13,23 @@ import {
     Versioned,
 } from "types/machineLearning";
 
-import * as ort from "onnxruntime-web";
-import { env } from "onnxruntime-web";
+// TODO(MR): onnx-yolo
+// import * as ort from "onnxruntime-web";
+// import { env } from "onnxruntime-web";
+const ort: any = {};
+
 import {
     clamp,
     getPixelBilinear,
     normalizePixelBetweenMinus1And1,
 } from "utils/image";
 
-env.wasm.wasmPaths = "/js/onnx/";
+// TODO(MR): onnx-yolo
+// env.wasm.wasmPaths = "/js/onnx/";
 class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
-    private onnxInferenceSession?: ort.InferenceSession;
+    // TODO(MR): onnx-yolo
+    // private onnxInferenceSession?: ort.InferenceSession;
+    private onnxInferenceSession?: any;
     public method: Versioned<FaceEmbeddingMethod>;
     public faceSize: number;
 
@@ -51,7 +57,9 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
             this.faceSize,
             3,
         ]);
-        const feeds: Record<string, ort.Tensor> = {};
+        // TODO(MR): onnx-yolo
+        // const feeds: Record<string, ort.Tensor> = {};
+        const feeds: Record<string, any> = {};
         const name = this.onnxInferenceSession.inputNames[0];
         feeds[name] = inputTensor;
         await this.onnxInferenceSession.run(feeds);
@@ -153,12 +161,15 @@ class MobileFaceNetEmbeddingService implements FaceEmbeddingService {
             this.faceSize,
             3,
         ]);
-        const feeds: Record<string, ort.Tensor> = {};
+        // TODO(MR): onnx-yolo
+        // const feeds: Record<string, ort.Tensor> = {};
+        const feeds: Record<string, any> = {};
         feeds["img_inputs"] = inputTensor;
         const inferenceSession = await this.getOnnxInferenceSession();
-        const runout: ort.InferenceSession.OnnxValueMapType =
-            await inferenceSession.run(feeds);
-        const test = runout.embeddings;
+        // TODO(MR): onnx-yolo
+        // const runout: ort.InferenceSession.OnnxValueMapType =
+        const runout: any = await inferenceSession.run(feeds);
+        // const test = runout.embeddings;
         // const test2 = test.cpuData;
         const outputData = runout.embeddings["cpuData"] as Float32Array;
         const embeddings = new Array<FaceEmbedding>(
