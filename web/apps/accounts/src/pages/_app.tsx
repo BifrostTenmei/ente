@@ -1,5 +1,6 @@
 import { CustomHead } from "@/next/components/Head";
 import { setupI18n } from "@/next/i18n";
+import { logUnhandledErrorsAndRejections } from "@/next/log-web";
 import { APPS, APP_TITLES } from "@ente/shared/apps/constants";
 import { Overlay } from "@ente/shared/components/Container";
 import DialogBoxV2 from "@ente/shared/components/DialogBoxV2";
@@ -30,7 +31,7 @@ interface AppContextProps {
 
 export const AppContext = createContext<AppContextProps>({} as AppContextProps);
 
-export default function App(props: AppProps) {
+export default function App({ Component, pageProps }: AppProps) {
     const [isI18nReady, setIsI18nReady] = useState<boolean>(false);
 
     const [showNavbar, setShowNavBar] = useState(false);
@@ -50,12 +51,12 @@ export default function App(props: AppProps) {
 
     const router = useRouter();
 
-    const { Component, pageProps } = props;
-
     const [themeColor] = useLocalState(LS_KEYS.THEME, THEME_COLOR.DARK);
 
     useEffect(() => {
         setupI18n().finally(() => setIsI18nReady(true));
+        logUnhandledErrorsAndRejections(true);
+        return () => logUnhandledErrorsAndRejections(false);
     }, []);
 
     const setupPackageName = () => {
