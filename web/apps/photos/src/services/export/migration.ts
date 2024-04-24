@@ -1,10 +1,10 @@
+import { FILE_TYPE } from "@/media/file";
 import { decodeLivePhoto } from "@/media/live-photo";
 import { ensureElectron } from "@/next/electron";
 import log from "@/next/log";
 import { LS_KEYS, getData } from "@ente/shared/storage/localStorage";
 import { User } from "@ente/shared/user/types";
-import { sleep } from "@ente/shared/utils";
-import { FILE_TYPE } from "constants/file";
+import { wait } from "@ente/shared/utils";
 import { getLocalCollections } from "services/collectionService";
 import downloadManager from "services/download";
 import { getAllLocalFiles } from "services/fileService";
@@ -305,7 +305,7 @@ async function getFileExportNamesFromExportedFiles(
     );
     let success = 0;
     for (const file of exportedFiles) {
-        await sleep(0);
+        await wait(0);
         const collectionPath = exportedCollectionPaths.get(file.collectionID);
         log.debug(
             () =>

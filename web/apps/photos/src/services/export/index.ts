@@ -1,3 +1,4 @@
+import { FILE_TYPE } from "@/media/file";
 import { decodeLivePhoto } from "@/media/live-photo";
 import { ensureElectron } from "@/next/electron";
 import log from "@/next/log";
@@ -6,12 +7,11 @@ import { Events, eventBus } from "@ente/shared/events";
 import { LS_KEYS, getData, setData } from "@ente/shared/storage/localStorage";
 import { formatDateTimeShort } from "@ente/shared/time/format";
 import { User } from "@ente/shared/user/types";
-import { sleep } from "@ente/shared/utils";
+import { wait } from "@ente/shared/utils";
 import QueueProcessor, {
     CancellationStatus,
     RequestCanceller,
 } from "@ente/shared/utils/queueProcessor";
-import { FILE_TYPE } from "constants/file";
 import { Collection } from "types/collection";
 import {
     CollectionExportNames,
@@ -919,7 +919,7 @@ class ExportService {
                 e.message === CustomError.EXPORT_RECORD_JSON_PARSING_FAILED &&
                 retry
             ) {
-                await sleep(1000);
+                await wait(1000);
                 return await this.getExportRecord(folder, false);
             }
             if (e.message !== CustomError.EXPORT_FOLDER_DOES_NOT_EXIST) {
@@ -994,6 +994,7 @@ class ExportService {
                         file,
                     );
                     await writeStream(
+                        electron,
                         `${collectionExportPath}/${fileExportName}`,
                         updatedFileStream,
                     );
@@ -1047,6 +1048,7 @@ class ExportService {
                 file,
             );
             await writeStream(
+                electron,
                 `${collectionExportPath}/${imageExportName}`,
                 imageStream,
             );
@@ -1061,6 +1063,7 @@ class ExportService {
             );
             try {
                 await writeStream(
+                    electron,
                     `${collectionExportPath}/${videoExportName}`,
                     videoStream,
                 );
