@@ -154,6 +154,7 @@ func (r *RateLimitMiddleware) getLimiter(reqPath string, reqMethod string) *limi
 		reqPath == "/users/srp/verify-session" ||
 		reqPath == "/family/invite-info/:token" ||
 		reqPath == "/family/add-member" ||
+		reqPath == "/cast/cast-data/" ||
 		strings.HasPrefix(reqPath, "/users/srp/") ||
 		strings.HasPrefix(reqPath, "/users/two-factor/") {
 		return r.limit10ReqPerMin
