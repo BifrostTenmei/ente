@@ -35,7 +35,9 @@ func (r *Repository) AddCode(ctx context.Context, code *string, pubKey string, i
 
 // InsertCastData insert collection_id, cast_user, token and encrypted_payload for given code if collection_id is not null
 func (r *Repository) InsertCastData(ctx context.Context, castUserID int64, code string, collectionID int64, castToken string, encryptedPayload string) error {
-	_, err := r.DB.ExecContext(ctx, "UPDATE casting SET collection_id = $1, cast_user = $2, token = $3, encrypted_payload = $4 WHERE code = $5 and is_deleted=false", collectionID, castUserID, castToken, encryptedPayload, code)
+	_, err := r.DB.ExecContext(ctx, `UPDATE casting SET collection_id = $1, cast_user = $2, token = $3, encrypted_payload = $4 
+			WHERE code = $5 and is_deleted=false and collection_id IS NULL`,
+		collectionID, castUserID, castToken, encryptedPayload, code)
 	return err
 }
 
